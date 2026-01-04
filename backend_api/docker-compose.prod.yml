@@ -1,0 +1,123 @@
+name: mis_system-engine
+
+version: "3.8"
+
+services:
+  # =============================================
+  # CORE BACKEND API
+  # =============================================
+  central-auth-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: central-auth-api
+    expose:
+      - "8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    environment:
+      - DATABASE_URL=sqlite:///./data/auth_system.db
+      - PRODUCTION=True
+      - DEBUG_MODE=False
+    env_file:
+      - ./.env.production
+    restart: unless-stopped
+    networks:
+      - auth-network
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================
+  # ADMIN CONTROL CENTER UI
+  # =============================================
+  admin-ui:
+    build:
+      context: ../admin-ui
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=
+    container_name: admin-ui
+    expose:
+      - "80"
+    restart: unless-stopped
+    networks:
+      - auth-network
+    depends_on:
+      central-auth-api:
+        condition: service_healthy
+
+  # =============================================
+  # REGISTRATION PORTAL (PUBLIC-FACING)
+  # =============================================
+  registration-portal:
+    build:
+      context: ../registration-portal
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=/api
+    container_name: registration-portal
+    expose:
+      - "80"
+    restart: unless-stopped
+    networks:
+      - auth-network
+    depends_on:
+      central-auth-api:
+        condition: service_healthy
+
+  # =============================================
+  # NGINX REVERSE PROXY
+  # =============================================
+  nginx:
+    image: nginx:alpine
+    container_name: auth-nginx
+    ports:
+      - "80:80" # API direct access
+      - "443:443" # HTTPS (if SSL configured)
+      - "3000:3000" # Admin Control Center
+      - "4000:4000" # Registration Portal
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      central-auth-api:
+        condition: service_healthy
+      admin-ui:
+        condition: service_started
+      registration-portal:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - auth-network
+
+  # =============================================
+  # NGROK - PUBLIC TUNNEL FOR REGISTRATION PORTAL
+  # =============================================
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: mis-ngrok
+    command:
+      - "http"
+      - "nginx:4000" # Tunnel to registration portal via nginx
+      - "--log=stdout"
+    ports:
+      - "4040:4040" # Ngrok web interface for inspection
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    env_file:
+      - ./.env.production
+    depends_on:
+      - nginx
+      - registration-portal
+    restart: unless-stopped
+    networks:
+      - auth-network
+
+networks:
+  auth-network:
+    driver: bridge

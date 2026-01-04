@@ -1,0 +1,5 @@
+{
+  "name": "SecureAuth Login",
+  "description": "A minimalist, single-page secure login interface featuring QR code authentication and Membership Key fallback with a modal-based architecture.",
+  "requestFramePermissions": []
+}

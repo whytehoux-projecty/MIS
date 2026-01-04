@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "e2e": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "true",
+        "EXPO_PUBLIC_E2E_MODE": "true"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "ios-e2e": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "true",
+        "EXPO_PUBLIC_E2E_MODE": "true"
+      }
+    },
+    "ios-testflight": {
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_USE_MOCK_API": "false",
+        "EXPO_PUBLIC_E2E_MODE": "false"
+      }
+    }
+  }
+}

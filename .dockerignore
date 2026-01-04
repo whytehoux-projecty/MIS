@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/__pycache__
+**/.pytest_cache
+**/.coverage
+**/.DS_Store
+**/*.log
+**/*.db
+**/*.sqlite3
+central-auth-api/venv
+central-auth-api/data
+central-auth-api/logs
+central-auth-api/uploads
+central-auth-api/.env
+central-auth-api/.env.*

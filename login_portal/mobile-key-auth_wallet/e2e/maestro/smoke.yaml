@@ -1,0 +1,32 @@
+appId: com.centralauth.mobileauth
+---
+- launchApp
+- assertVisible: "Central Auth"
+- tapOn: "Get Started"
+- assertVisible: "Enable camera access"
+- tapOn: "Not now"
+- assertVisible: "Enter your Membership Key"
+- tapOn:
+    id: "auth-key-input"
+- inputText: "good-key-1234"
+- tapOn:
+    id: "auth-key-continue"
+- assertVisible: "Ready to scan"
+- tapOn: "Scan"
+- assertVisible: "E2E Mode"
+- tapOn:
+    id: "qr-token-input"
+- inputText: "hello"
+- tapOn:
+    id: "simulate-scan"
+- assertVisible: "PIN for Test Service"
+- tapOn: "Back to Home"
+- assertVisible: "Ready to scan"
+- tapOn: "History"
+- assertVisible: "History"
+- assertVisible: "Test Service"
+- tapOn: "Settings"
+- assertVisible: "Settings"
+- tapOn: "Sign out"
+- assertVisible: "Central Auth"
+

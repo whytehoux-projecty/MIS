@@ -1,0 +1,413 @@
+/* Import Architype Aubette font - Using a similar geometric sans-serif as fallback */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
+
+@font-face {
+  font-family: 'boxing';
+  src: url('/src/assets/page2-assets/varcity/Varcity.otf') format('opentype'),
+    url('/src/assets/page2-assets/varcity/Varcity.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Architype Aubette';
+  src: url('/src/assets/page2-assets/Architype Aubette W90/Architype Aubette W90.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DigitalDream';
+  src: url('/src/assets/digital-dream/DIGITALDREAM.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DigitalDream';
+  src: url('/src/assets/digital-dream/DIGITALDREAMFAT.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom Font */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* SPACE Banner Text Styling */
+.space-banner-text {
+  font-family: 'Architype Aubette', 'Orbitron', sans-serif;
+  font-size: 200px;
+  letter-spacing: 0.5em;
+  color: white;
+  text-transform: uppercase;
+  font-weight: 700;
+  /* Compensate for letter-spacing on the last letter */
+  padding-right: 0.5em;
+}
+
+/* Horizontal bounce animation (to the right) */
+@keyframes bounceRight {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.animate-bounce-right {
+  animation: bounceRight 1s ease-in-out infinite;
+}
+
+/* Floating Lift Animation */
+@keyframes floatLift {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1.25);
+  }
+
+  50% {
+    transform: translateY(-15px) scale(1.25);
+  }
+}
+
+.animate-float-lift {
+  animation: floatLift 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.7);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Form input focus ring */
+.input-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #10b981;
+  border-color: #10b981;
+}
+
+/* Timer styling */
+.timer-critical {
+  color: #ef4444;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.timer-warning {
+  color: #f59e0b;
+}
+
+.timer-normal {
+  color: #10b981;
+}
+
+/* Audio visualizer bars */
+.audio-bar {
+  width: 4px;
+  background-color: #ef4444;
+  border-radius: 9999px;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+.audio-bar-1 {
+  height: 10px;
+  animation-delay: 0s;
+}
+
+.audio-bar-2 {
+  height: 15px;
+  animation-delay: 0.1s;
+}
+
+.audio-bar-3 {
+  height: 20px;
+  animation-delay: 0.2s;
+}
+
+.audio-bar-4 {
+  height: 12px;
+  animation-delay: 0.3s;
+}
+
+.audio-bar-5 {
+  height: 18px;
+  animation-delay: 0.4s;
+}
+
+/* Confetti particles */
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.confetti-1 {
+  background-color: #10B981;
+  top: 25%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.confetti-2 {
+  background-color: #3B82F6;
+  top: 35%;
+  left: 30%;
+  animation-delay: 0.2s;
+}
+
+.confetti-3 {
+  background-color: #8B5CF6;
+  top: 45%;
+  left: 55%;
+  animation-delay: 0.4s;
+}
+
+.confetti-4 {
+  background-color: #F59E0B;
+  top: 30%;
+  left: 70%;
+  animation-delay: 0.6s;
+}
+
+.confetti-5 {
+  background-color: #EF4444;
+  top: 50%;
+  left: 80%;
+  animation-delay: 0.8s;
+}
+
+.confetti-6 {
+  background-color: #EC4899;
+  top: 60%;
+  left: 45%;
+  animation-delay: 1s;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* ==================== LANDING PAGE STYLES ==================== */
+
+/* Animation for fade in upward */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Landing page font */
+.landing-font {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Shuttle background image styling */
+.shuttle-background {
+  filter: brightness(0.4);
+}
+
+/* Space banner glow effect */
+.space-banner-glow {
+  filter: drop-shadow(0 0 60px rgba(255, 255, 255, 0.15));
+}
+
+/* CTA button premium shadow */
+.cta-button-shadow {
+  box-shadow: 0 0 50px rgba(255, 255, 255, 0.15), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cta-button-shadow:hover {
+  box-shadow: 0 0 70px rgba(255, 255, 255, 0.25), 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Feature card subtle shadow */
+.feature-card-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.feature-card-shadow:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+/* Light grey background matching mockup */
+.bg-light-grey {
+  background-color: #f5f5f7;
+}
+
+/* Warning Stripes Animation */
+@keyframes slide-stripes {
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 56px 0;
+  }
+}
+
+.bg-warning-stripes {
+  background-image: repeating-linear-gradient(45deg, #ef4444 0, #ef4444 10px, transparent 10px, transparent 20px);
+  background-size: 56px 56px;
+  animation: slide-stripes 2s linear infinite;
+}
+
+/* Dynamic animation duration utilities */
+.animate-ping-fast {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-ping-slow {
+  animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse-fast {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Audio visualizer bar animations */
+.audio-bar-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.audio-bar-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.audio-bar-delay-3 {
+  animation-delay: 0.3s;
+}
+
+.audio-bar-delay-4 {
+  animation-delay: 0.4s;
+}
+
+.audio-bar-delay-5 {
+  animation-delay: 0.5s;
+}
+
+/* Application Submitted Title */
+.application-title {
+  font-family: 'boxing', sans-serif;
+  letter-spacing: 0.1em;
+}

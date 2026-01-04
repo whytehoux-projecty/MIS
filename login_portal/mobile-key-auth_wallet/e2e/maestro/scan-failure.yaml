@@ -1,0 +1,18 @@
+appId: com.centralauth.mobileauth
+---
+- launchApp
+- tapOn: "Link Account"
+- tapOn:
+    id: "auth-key-input"
+- inputText: "good-key-1234"
+- tapOn:
+    id: "auth-key-continue"
+- tapOn: "Scan"
+- tapOn:
+    id: "qr-token-input"
+- inputText: "expired"
+- tapOn:
+    id: "simulate-scan"
+- assertVisible: "Scan failed"
+- tapOn: "OK"
+

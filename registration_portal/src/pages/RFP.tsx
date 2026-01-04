@@ -1,0 +1,628 @@
+/**
+ * RFP - Registration Form Page
+ * Multi-step registration form
+ * Connected to Central Auth API backend
+ * Theme: Light grey (#d9d9d9) with Chaco Black (#28282B)
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { api } from '../services/api';
+import { useRegistrationForm, usePhotoUpload, useRegistrationSession, useRegistrationGuard } from '../hooks';
+
+
+const STEP_TITLES = ['Personal Info', 'Address', 'Credentials', 'Photos'];
+
+export const RFP: React.FC = () => {
+    const navigate = useNavigate();
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+
+    // Registration guard - protects page from offline access
+    const { isRedirecting, statusMessage } = useRegistrationGuard(navigate);
+
+    // Hooks
+    const { formData, updateField, errors, isValid } = useRegistrationForm();
+    const { photos, addPhotos, removePhoto, isUploading, uploadProgress, maxPhotos } = usePhotoUpload(5);
+    const { session, timeRemaining, formatTime, updateStep } = useRegistrationSession();
+
+    // Check if invitation was verified
+    useEffect(() => {
+        const verified = sessionStorage.getItem('invitation_verified');
+        if (!verified) {
+            toast.error('Please verify your invitation first');
+            navigate('/invitation');
+        }
+    }, [navigate]);
+
+    // Update session step
+    useEffect(() => {
+        const steps: Record<number, 'personal' | 'address' | 'photos'> = {
+            1: 'personal',
+            2: 'address',
+            4: 'photos',
+        };
+        if (steps[step]) {
+            updateStep(steps[step]);
+        }
+    }, [step, updateStep]);
+
+    // Handle photo upload
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        // Validate file types
+        const validFiles = files.filter((file) => {
+            if (!file.type.startsWith('image/')) {
+                toast.error(`${file.name} is not an image`);
+                return false;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error(`${file.name} is too large (max 5MB)`);
+                return false;
+            }
+            return true;
+        });
+
+        if (photos.length + validFiles.length > maxPhotos) {
+            toast.error(`Maximum ${maxPhotos} photos allowed`);
+            return;
+        }
+
+        await addPhotos(validFiles);
+    };
+
+    // Handle step navigation
+    const nextStep = async () => {
+        // Validate current step
+        if (step === 1) {
+            if (!isValid(1)) {
+                toast.error('Please fill in all required fields correctly');
+                return;
+            }
+
+            // Check email availability
+            const emailCheck = await api.checkEmailAvailability(formData.email);
+            if (emailCheck.success && !emailCheck.data?.available) {
+                toast.error('This email is already registered');
+                return;
+            }
+
+            // Check username availability
+            const usernameCheck = await api.checkUsernameAvailability(formData.username);
+            if (usernameCheck.success && !usernameCheck.data?.available) {
+                toast.error('This username is already taken');
+                return;
+            }
+        }
+
+        setStep((prev) => Math.min(prev + 1, 4));
+    };
+
+    const prevStep = () => {
+        setStep((prev) => Math.max(prev - 1, 1));
+    };
+
+    // Handle form submission
+    const handleSubmit = async () => {
+        if (photos.length === 0) {
+            toast.error('Please upload at least one photo');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Store form data in session for oath page
+            sessionStorage.setItem('registration_data', JSON.stringify({
+                ...formData,
+                photoCount: photos.length,
+            }));
+
+            toast.success('Registration saved! Continue to oath.');
+            navigate('/oath');
+        } catch (error) {
+            toast.error('Failed to save registration');
+            console.error('Registration error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Get timer color class
+    const getTimerClass = () => {
+        if (timeRemaining < 300) return 'text-red-600';
+        if (timeRemaining < 900) return 'text-yellow-700';
+        return 'text-[#28282B]';
+    };
+
+    // Show redirecting screen if system is offline
+    if (isRedirecting) {
+        return (
+            <div className="min-h-screen flex">
+                {/* ═══════════════════════════════════════════════════════════
+                LEFT SIDE - Chaco Black Background
+            ═══════════════════════════════════════════════════════════ */}
+                <div className="hidden lg:block lg:w-1/2 bg-[#28282B]">
+                    {/* You can add decorative elements here if needed */}
+                </div>
+
+                {/* ═══════════════════════════════════════════════════════════
+                RIGHT SIDE - Content Area
+            ═══════════════════════════════════════════════════════════ */}
+                <div className="w-full lg:w-1/2 bg-[#d9d9d9] flex items-center justify-center p-4 min-h-screen">
+                    <div className="max-w-md w-full text-center">
+                        <div className="bg-white p-8 border-4 border-[#28282B]">
+                            <div className="w-16 h-16 bg-amber-100 flex items-center justify-center mx-auto mb-6">
+                                <svg className="w-8 h-8 text-amber-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                            </div>
+                            <h1 className="text-2xl font-bold text-[#28282B] mb-4 uppercase font-['boxing']">
+                                Registration Offline
+                            </h1>
+                            <p className="text-gray-600 mb-2">{statusMessage}</p>
+                            <p className="text-gray-500 text-sm">Redirecting to Interest page...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen flex">
+            {/* ═══════════════════════════════════════════════════════════
+                LEFT SIDE - Chaco Black Background
+            ═══════════════════════════════════════════════════════════ */}
+            <div className="hidden lg:block lg:w-1/2 bg-[#28282B]">
+                {/* You can add decorative elements here if needed */}
+            </div>
+
+            {/* ═══════════════════════════════════════════════════════════
+                RIGHT SIDE - Content Area
+            ═══════════════════════════════════════════════════════════ */}
+            <div className="w-full lg:w-1/2 bg-[#d9d9d9] py-8 px-4 min-h-screen">
+                <div className="max-w-2xl mx-auto">
+
+
+                    {/* Timer */}
+                    {session && (
+                        <div className="text-center mb-4">
+                            <span className={`font-mono text-sm ${getTimerClass()}`}>
+                                ⏱ {formatTime(timeRemaining)} remaining
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Progress indicator */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-between mb-4">
+                            {[1, 2, 3, 4].map((s) => (
+                                <div
+                                    key={s}
+                                    className={`flex items-center ${s < 4 ? 'flex-1' : ''}`}
+                                >
+                                    <div
+                                        className={`w-10 h-10 flex items-center justify-center font-semibold transition-all border-2 ${s <= step
+                                            ? 'bg-[#28282B] text-white border-[#28282B]'
+                                            : 'bg-white text-gray-400 border-gray-300'
+                                            }`}
+                                    >
+                                        {s < step ? (
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        ) : (
+                                            s
+                                        )}
+                                    </div>
+                                    {s < 4 && (
+                                        <div
+                                            className={`flex-1 h-1 mx-2 transition-all ${s < step ? 'bg-[#28282B]' : 'bg-gray-300'
+                                                }`}
+                                        />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                            {STEP_TITLES.map((title, i) => (
+                                <span key={i} className={step === i + 1 ? 'text-[#28282B] font-semibold' : ''}>
+                                    {title}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Form card */}
+                    <div className="bg-white p-8 border-4 border-[#28282B]">
+                        {/* Step 1: Personal Info */}
+                        {step === 1 && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-[#28282B] mb-6 uppercase font-['boxing']">Personal Information</h2>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            First Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.firstName}
+                                            onChange={(e) => updateField('firstName', e.target.value)}
+                                            placeholder="Enter your first name"
+                                            className={`w-full px-4 py-3 bg-white border-2 text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none ${errors.firstName ? 'border-red-500' : 'border-[#28282B]'
+                                                }`}
+                                            required
+                                        />
+                                        {errors.firstName && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            Last Name *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.lastName}
+                                            onChange={(e) => updateField('lastName', e.target.value)}
+                                            placeholder="Enter your last name"
+                                            className={`w-full px-4 py-3 bg-white border-2 text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none ${errors.lastName ? 'border-red-500' : 'border-[#28282B]'
+                                                }`}
+                                            required
+                                        />
+                                        {errors.lastName && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                        Email Address *
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => updateField('email', e.target.value)}
+                                        placeholder="example@email.com"
+                                        className={`w-full px-4 py-3 bg-white border-2 text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none ${errors.email ? 'border-red-500' : 'border-[#28282B]'
+                                            }`}
+                                        required
+                                    />
+                                    {errors.email && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            Phone Number
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={formData.phone}
+                                            onChange={(e) => updateField('phone', e.target.value)}
+                                            placeholder="+1 (234) 567-8900"
+                                            className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            Date of Birth
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.dateOfBirth}
+                                            onChange={(e) => updateField('dateOfBirth', e.target.value)}
+                                            title="Date of Birth"
+                                            className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                        Occupation
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.occupation}
+                                        onChange={(e) => updateField('occupation', e.target.value)}
+                                        placeholder="Enter your occupation"
+                                        className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Step 2: Address */}
+                        {step === 2 && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-[#28282B] mb-6 uppercase font-['boxing']">Address Information</h2>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                        Street Address
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.address}
+                                        onChange={(e) => updateField('address', e.target.value)}
+                                        placeholder="123 Main Street"
+                                        className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            City
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.city}
+                                            onChange={(e) => updateField('city', e.target.value)}
+                                            placeholder="City name"
+                                            className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            State / Province
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.state}
+                                            onChange={(e) => updateField('state', e.target.value)}
+                                            placeholder="State/Province"
+                                            className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            Postal Code
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.postalCode}
+                                            onChange={(e) => updateField('postalCode', e.target.value)}
+                                            placeholder="12345"
+                                            className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                            Country
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.country}
+                                            onChange={(e) => updateField('country', e.target.value)}
+                                            placeholder="Country"
+                                            className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                        Short Bio
+                                    </label>
+                                    <textarea
+                                        value={formData.bio}
+                                        onChange={(e) => updateField('bio', e.target.value)}
+                                        rows={4}
+                                        className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] resize-none rounded-none"
+                                        placeholder="Tell us a bit about yourself..."
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Step 3: Credentials */}
+                        {step === 3 && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-[#28282B] mb-6 uppercase font-['boxing']">Account Credentials</h2>
+                                <p className="text-gray-600 mb-4">
+                                    Create your login credentials. These will be used to access your account once approved.
+                                </p>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                        Username *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.username}
+                                        onChange={(e) => updateField('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                        placeholder="your_username"
+                                        className={`w-full px-4 py-3 bg-white border-2 text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none ${errors.username ? 'border-red-500' : 'border-[#28282B]'
+                                            }`}
+                                        required
+                                    />
+                                    {errors.username ? (
+                                        <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+                                    ) : (
+                                        <p className="text-gray-500 text-xs mt-1">Letters, numbers, and underscores only</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-[#28282B] mb-2">
+                                        Password *
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={formData.password}
+                                        onChange={(e) => updateField('password', e.target.value)}
+                                        placeholder="••••••••"
+                                        className={`w-full px-4 py-3 bg-white border-2 text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] rounded-none ${errors.password ? 'border-red-500' : 'border-[#28282B]'
+                                            }`}
+                                        required
+                                    />
+                                    {errors.password ? (
+                                        <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                                    ) : (
+                                        <p className="text-gray-500 text-xs mt-1">Minimum 8 characters</p>
+                                    )}
+                                </div>
+
+                                {/* Password strength indicator */}
+                                {formData.password && (
+                                    <div className="space-y-2">
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4].map((level) => (
+                                                <div
+                                                    key={level}
+                                                    className={`h-1 flex-1 ${formData.password.length >= level * 3
+                                                        ? level <= 2
+                                                            ? 'bg-red-500'
+                                                            : level === 3
+                                                                ? 'bg-yellow-500'
+                                                                : 'bg-green-500'
+                                                        : 'bg-gray-300'
+                                                        }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            {formData.password.length < 6
+                                                ? 'Weak'
+                                                : formData.password.length < 10
+                                                    ? 'Fair'
+                                                    : 'Strong'}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Step 4: Photos */}
+                        {step === 4 && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-[#28282B] mb-6 uppercase font-['boxing']">Upload Photos</h2>
+                                <p className="text-gray-600 mb-4">
+                                    Please upload 1-5 clear photos of yourself. These will be used for identification.
+                                </p>
+
+                                {/* Photo upload area */}
+                                <div className="border-2 border-dashed border-[#28282B] p-8 text-center hover:border-[#28282B]/70 transition">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handlePhotoUpload}
+                                        className="hidden"
+                                        id="photo-upload"
+                                        disabled={isUploading || photos.length >= maxPhotos}
+                                    />
+                                    <label htmlFor="photo-upload" className={`cursor-pointer ${photos.length >= maxPhotos ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        <svg className="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p className="text-[#28282B]">
+                                            {isUploading ? 'Uploading...' : 'Click to upload photos'}
+                                        </p>
+                                        <p className="text-gray-500 text-sm mt-1">
+                                            PNG, JPG up to 5MB each ({photos.length}/{maxPhotos})
+                                        </p>
+                                    </label>
+                                </div>
+
+                                {/* Upload progress */}
+                                {isUploading && (
+                                    <div className="w-full bg-gray-200 h-2">
+                                        <div className={`bg-[#28282B] h-2 transition-all w-[${uploadProgress}%]`} />
+                                    </div>
+                                )}
+
+                                {/* Photo previews */}
+                                {photos.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {photos.map((photo, index) => (
+                                            <div key={index} className="relative group">
+                                                <img
+                                                    src={photo.preview}
+                                                    alt={`Photo ${index + 1}`}
+                                                    className="w-full h-32 object-cover border-2 border-[#28282B]"
+                                                />
+                                                <button
+                                                    onClick={() => removePhoto(index)}
+                                                    aria-label={`Remove photo ${index + 1}`}
+                                                    title={`Remove photo ${index + 1}`}
+                                                    className="absolute top-2 right-2 w-6 h-6 bg-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                                                >
+                                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                                {photo.uploaded && (
+                                                    <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 flex items-center justify-center">
+                                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Navigation */}
+                        <div className="flex justify-between mt-8">
+                            {step > 1 ? (
+                                <button
+                                    onClick={prevStep}
+                                    className="px-6 py-3 border-2 border-[#28282B] text-[#28282B] hover:bg-[#28282B] hover:text-white transition"
+                                >
+                                    BACK
+                                </button>
+                            ) : (
+                                <div />
+                            )}
+
+                            {step < 4 ? (
+                                <button
+                                    onClick={nextStep}
+                                    className="px-6 py-3 bg-[#28282B] text-white hover:bg-[#28282B]/90 transition"
+                                >
+                                    CONTINUE
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={loading || isUploading}
+                                    className="px-6 py-3 bg-[#28282B] text-white hover:bg-[#28282B]/90 transition disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                            </svg>
+                                            SAVING...
+                                        </>
+                                    ) : (
+                                        'CONTINUE TO OATH'
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

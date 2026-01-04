@@ -1,0 +1,97 @@
+{
+    "name": "@yourcompany/central-auth-sdk",
+    "version": "1.0.0",
+    "description": "Authentication SDK for Central Auth System - Enable QR-based login for your apps",
+    "main": "dist/index.js",
+    "module": "dist/index.esm.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "npm run build:lib",
+        "build:lib": "rollup -c rollup.config.js",
+        "build:types": "tsc --emitDeclarationOnly",
+        "preview": "vite preview",
+        "lint": "eslint . --ext ts,tsx",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "test:ui": "vitest --ui",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "test:e2e:headed": "playwright test --headed",
+        "test:all": "npm run test:run && npm run test:e2e",
+        "prepublishOnly": "npm run build"
+    },
+    "peerDependencies": {
+        "react": ">=17.0.0",
+        "react-dom": ">=17.0.0"
+    },
+    "dependencies": {
+        "axios": "^1.6.0",
+        "html5-qrcode": "^2.3.8"
+    },
+    "devDependencies": {
+        "@rollup/plugin-commonjs": "^25.0.0",
+        "@rollup/plugin-node-resolve": "^15.0.0",
+        "@rollup/plugin-typescript": "^11.0.0",
+        "@testing-library/jest-dom": "^6.1.0",
+        "@testing-library/react": "^14.1.0",
+        "@testing-library/user-event": "^14.5.0",
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0",
+        "@vitejs/plugin-react": "^4.2.0",
+        "@vitest/coverage-v8": "^1.0.0",
+        "@vitest/ui": "^1.0.0",
+        "autoprefixer": "^10.4.16",
+        "jsdom": "^23.0.0",
+        "postcss": "^8.4.31",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "rollup": "^4.0.0",
+        "rollup-plugin-peer-deps-external": "^2.2.4",
+        "rollup-plugin-postcss": "^4.0.2",
+        "tailwindcss": "^3.3.5",
+        "typescript": "^5.2.0",
+        "vite": "^5.0.0",
+        "vitest": "^1.0.0",
+        "eslint": "^8.55.0",
+        "@typescript-eslint/eslint-plugin": "^6.13.0",
+        "@typescript-eslint/parser": "^6.13.0",
+        "@playwright/test": "^1.40.0"
+    },
+    "keywords": [
+        "auth",
+        "authentication",
+        "login",
+        "qr-code",
+        "react",
+        "sdk",
+        "sso",
+        "central-auth"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/yourcompany/central-auth-sdk"
+    },
+    "homepage": "https://github.com/yourcompany/central-auth-sdk#readme",
+    "bugs": {
+        "url": "https://github.com/yourcompany/central-auth-sdk/issues"
+    },
+    "license": "MIT",
+    "author": "Your Company",
+    "publishConfig": {
+        "access": "public"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/index.esm.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./styles": "./dist/styles.css"
+    }
+}
