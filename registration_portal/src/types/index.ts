@@ -53,11 +53,31 @@ export interface InvitationVerifyRequest {
     pin: string;
 }
 
+export interface TimeRemaining {
+    link_remaining_seconds: number;
+    session_remaining_seconds: number;
+    link_remaining_formatted: string;
+    session_remaining_formatted: string;
+}
+
 export interface InvitationVerifyResponse {
     valid: boolean;
-    invitation_id: number;
+    invitation_id?: number;
+    intended_for?: string;
     message: string;
-    expires_at?: string;
+    time_remaining?: TimeRemaining;
+}
+
+export interface OpenLinkRequest {
+    url_token: string;
+}
+
+export interface OpenLinkResponse {
+    valid: boolean;
+    session_started: boolean;
+    invitation_code: string;
+    invitation_id?: number;
+    time_remaining: TimeRemaining;
 }
 
 // ============================================================================

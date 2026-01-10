@@ -12,6 +12,12 @@ class Settings:
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
+    # Encryption
+    URL_ENCRYPTION_KEY: str = os.getenv("URL_ENCRYPTION_KEY", "")
+    
+    # URLs
+    REGISTRATION_PORTAL_URL: str = os.getenv("REGISTRATION_PORTAL_URL", "http://localhost:5173")
+    
     # Operating Hours
     OPENING_HOUR: int = int(os.getenv("OPENING_HOUR", "9"))
     OPENING_MINUTE: int = int(os.getenv("OPENING_MINUTE", "0"))
@@ -24,11 +30,17 @@ class Settings:
     PIN_EXPIRY_MINUTES: int = int(os.getenv("PIN_EXPIRY_MINUTES", "5"))
     SESSION_EXPIRY_MINUTES: int = int(os.getenv("SESSION_EXPIRY_MINUTES", "30"))
     
+    # Invitation Timers
+    INVITATION_VALIDITY_HOURS: int = int(os.getenv("INVITATION_VALIDITY_HOURS", "24"))
+    SESSION_VALIDITY_HOURS: int = int(os.getenv("SESSION_VALIDITY_HOURS", "5"))
+    
     # Email
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USER: str = os.getenv("SMTP_USER", "")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_TLS: bool = os.getenv("SMTP_TLS", "True") == "True"
+    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "MIS Registration <noreply@mis.net>")
     ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
     
     # API

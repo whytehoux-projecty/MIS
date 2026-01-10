@@ -12,10 +12,10 @@ from app.database import engine, Base
 from app.core.system_status import get_system_status
 
 # Import all route modules
-from app.routes import registration, admin, auth, services, system, invitation, waitlist, upload, monitoring
+from app.routes import registration, admin, auth, services, system, invitation, waitlist, upload, monitoring, interest_request
 
 # Import all models to ensure they're registered with SQLAlchemy
-from app.models import waitlist as waitlist_model  # noqa: F401
+from app.models import interest_request as interest_request_model  # noqa: F401
 
 # Create all database tables
 try:
@@ -122,6 +122,12 @@ app.include_router(
     upload.router,
     prefix="/api/upload",
     tags=["Uploads"]
+)
+
+app.include_router(
+    interest_request.router,
+    prefix="/api/interest",
+    tags=["Interest Requests"]
 )
 
 from pathlib import Path

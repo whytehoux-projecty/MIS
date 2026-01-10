@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
 import { useRegistrationSession } from '../hooks';
@@ -23,6 +23,7 @@ interface SystemStatusData {
 
 export const ICVP: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Hooks
     const { session, timeRemaining, startSession, formatTime } = useRegistrationSession();
@@ -40,6 +41,43 @@ export const ICVP: React.FC = () => {
     });
     const [statusLoading, setStatusLoading] = useState(true);
     const [redirecting, setRedirecting] = useState(false);
+
+    // URL Token Logic
+    // URL Token Logic
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const token = params.get('t') || params.get('token');
+
+        if (token) {
+            handleOpenLink(token);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
+
+    const handleOpenLink = async (token: string) => {
+        setLoading(true);
+        try {
+            const result = await api.openLink(token);
+            if (result.success && result.data && result.data.valid) {
+                if (result.data.invitation_id) {
+                    startSession(result.data.invitation_code, result.data.invitation_id);
+                    sessionStorage.setItem('invitation_verified', 'true');
+                    sessionStorage.setItem('invitation_code', result.data.invitation_code);
+                    toast.success('Link verified! Welcome.');
+                    navigate('/register');
+                } else {
+                    toast.error('Invitation ID missing in response');
+                }
+            } else {
+                toast.error('Invalid or expired link');
+            }
+        } catch (error) {
+            toast.error('Failed to verify link');
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Fetch system status on mount - REDIRECT IF OFFLINE
     useEffect(() => {
@@ -306,12 +344,13 @@ export const ICVP: React.FC = () => {
                                     type="text"
                                     value={invitationCode}
                                     onChange={(e) => setInvitationCode(e.target.value.toUpperCase())}
-                                    placeholder="e.g., INV-ABC123"
+                                    placeholder="e.g., abc123def456ghi"
+                                    maxLength={15}
                                     className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] transition uppercase rounded-none"
                                     disabled={loading || statusLoading}
                                     autoComplete="off"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Format: XXX-XXXXXX</p>
+                                <p className="text-xs text-gray-500 mt-1">Format: 15 alphanumeric characters</p>
                             </div>
 
                             {/* PIN */}
@@ -322,9 +361,9 @@ export const ICVP: React.FC = () => {
                                 <input
                                     type="password"
                                     value={pin}
-                                    onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                    placeholder="4-digit PIN"
-                                    maxLength={4}
+                                    onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="6-digit PIN"
+                                    maxLength={6}
                                     className="w-full px-4 py-3 bg-white border-2 border-[#28282B] text-[#28282B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#28282B] transition text-center text-2xl tracking-widest rounded-none"
                                     disabled={loading || statusLoading}
                                     inputMode="numeric"

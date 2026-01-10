@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { InterestRequest, AdminInviteCreate } from '../types/interest'
 
 export interface ApiConfig {
   baseURL: string
@@ -104,6 +105,14 @@ export interface RegisterServiceRequest {
   service_name: string
   service_url: string
   description?: string
+}
+
+export interface InterestApprovalResponse {
+  success: boolean
+  message?: string
+  invitation_code?: string
+  pin?: string
+  invitation_id?: number
 }
 
 export interface SystemStatus {
@@ -603,6 +612,58 @@ class ApiService {
     delete: async (mediaType: 'photos' | 'audio', fileId: string): Promise<{ success: boolean; message: string }> => {
       return await this.apiDelete(`/api/upload/${mediaType}/${fileId}`)
     },
+  }
+
+  upload = {
+    photo: async (formData: FormData) => {
+      const response = await this.instance.post<{ success: boolean; file_id: string; url: string }>('/api/upload/photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    },
+    audio: async (formData: FormData) => {
+      const response = await this.instance.post<{ success: boolean; file_id: string; url: string }>('/api/upload/audio', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    }
+  }
+
+  // Interest Application Management
+  interest = {
+    getAll: async (status?: string, skip = 0, limit = 50): Promise<InterestRequest[]> => {
+      const params = new URLSearchParams({ skip: skip.toString(), limit: limit.toString() })
+      if (status) params.append('status', status)
+      return await this.get<InterestRequest[]>(`/api/interest/all?${params.toString()}`)
+    },
+
+    getPending: async (skip = 0, limit = 50): Promise<InterestRequest[]> => {
+      return await this.get<InterestRequest[]>(`/api/interest/pending?skip=${skip}&limit=${limit}`)
+    },
+
+    getById: async (id: number): Promise<InterestRequest> => {
+      return await this.get<InterestRequest>(`/api/interest/${id}`)
+    },
+
+    getStats: async (): Promise<any> => {
+      return await this.get<any>('/api/interest/stats')
+    },
+
+    approve: async (id: number, notes?: string, expires_in_hours = 24): Promise<InterestApprovalResponse> => {
+      return await this.post<InterestApprovalResponse>(`/api/interest/${id}/approve`, { admin_notes: notes, expires_in_hours })
+    },
+
+    reject: async (id: number, reason: string): Promise<{ success: boolean; message?: string }> => {
+      return await this.post<{ success: boolean; message?: string }>(`/api/interest/${id}/reject`, { reason })
+    },
+
+    requestInfo: async (id: number, message: string): Promise<{ success: boolean; message?: string }> => {
+      return await this.post<{ success: boolean; message?: string }>(`/api/interest/${id}/request-info`, { message })
+    },
+
+    createAdminInvite: async (data: AdminInviteCreate): Promise<InterestApprovalResponse> => {
+      return await this.post<InterestApprovalResponse>('/api/interest/admin-invite', data)
+    }
   }
 
   // Public Membership Initiation (No Auth / Specific Flow)

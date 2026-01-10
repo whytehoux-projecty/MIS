@@ -1,7 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 import shutil
 import os
 import uuid
+from app.middleware.rate_limiter import RateLimiter
 
 router = APIRouter()
 
@@ -15,7 +16,10 @@ AUDIO_DIR = os.path.join(UPLOAD_DIR, "audio")
 os.makedirs(PHOTO_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
-@router.post("/photo", status_code=status.HTTP_201_CREATED)
+# Rate limiter for uploads (10 requests per minute per IP)
+upload_rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
+
+@router.post("/photo", status_code=status.HTTP_201_CREATED, dependencies=[Depends(upload_rate_limiter.check_rate_limit)])
 async def upload_photo(file: UploadFile = File(...)):
     """
     Upload a photo for registration.

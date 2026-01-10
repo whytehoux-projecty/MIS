@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Interest Request - MIS Admin</title>
+</head>
+
+<body>
+    <h2>New Interest Request Submitted</h2>
+
+    <p>A new interest request has been submitted and requires your review.</p>
+
+    <h3>Applicant Details:</h3>
+    <ul>
+        <li><strong>Name:</strong> {{full_name}}</li>
+        <li><strong>Alias:</strong> {{alias}}</li>
+        <li><strong>Email:</strong> {{primary_email}}</li>
+        <li><strong>Phone:</strong> {{primary_phone}}</li>
+        <li><strong>Gender:</strong> {{gender}}</li>
+        <li><strong>Marital Status:</strong> {{marital_status}}</li>
+        <li><strong>Has Referral:</strong> {{has_referral}}</li>
+        <li><strong>Referral ID:</strong> {{referral_member_id}}</li>
+    </ul>
+
+    <p><a href="{{admin_review_url}}">Click here to review this request</a></p>
+</body>
+
+</html>

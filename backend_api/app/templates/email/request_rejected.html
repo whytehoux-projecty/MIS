@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status Update - MIS Registration</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border: 3px solid #28282B;
+        }
+
+        .header {
+            background: #28282B;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .reason-box {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MIS REGISTRATION</h1>
+        </div>
+
+        <div class="content">
+            <h2>Hello, {{applicant_name}}</h2>
+
+            <p>Thank you for your interest in joining MIS.</p>
+
+            <p>After careful review of your application, we regret to inform you that we are unable to approve your
+                registration request at this time.</p>
+
+            <div class="reason-box">
+                <strong>Reason:</strong><br>
+                {{rejection_reason}}
+            </div>
+
+            <p>If you believe this decision was made in error or would like to provide additional information, please
+                contact our support team.</p>
+
+            <p>Thank you for your understanding.</p>
+
+            <p>Best regards,<br>The MIS Team</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message from MIS.</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -14,6 +14,7 @@ import type {
     UploadResponse,
     WaitlistSubmitRequest,
     WaitlistSubmitResponse,
+    OpenLinkResponse,
 } from '../types';
 
 // ============================================================================
@@ -217,36 +218,33 @@ export const api = {
         data: InvitationVerifyRequest
     ): Promise<ApiResponse<InvitationVerifyResponse>> {
         try {
-            // Basic client-side validation first
-            const codeRegex = /^[A-Z0-9]{3,}-[A-Z0-9]{3,}$/;
-            const pinRegex = /^\d{4}$/;
-
-            if (!codeRegex.test(data.invitation_code.toUpperCase())) {
-                return {
-                    success: false,
-                    error: 'Invalid invitation code format. Expected format: XXX-XXX',
-                };
-            }
-
-            if (!pinRegex.test(data.pin)) {
-                return {
-                    success: false,
-                    error: 'Invalid PIN format. PIN must be 4 digits.',
-                };
-            }
-
             // Call the backend invitation verification endpoint
             const response = await apiClient.post<InvitationVerifyResponse>(
                 '/invitation/verify',
                 {
-                    invitation_code: data.invitation_code.toUpperCase(),
-                    pin: data.pin,
+                    invitation_code: data.invitation_code.trim(),
+                    pin: data.pin.trim(),
                 }
             );
 
             return {
                 success: true,
                 data: response.data,
+            };
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    /**
+     * Open encrypted registration link
+     */
+    async openLink(url_token: string): Promise<ApiResponse<OpenLinkResponse>> {
+        try {
+            const response = await apiClient.post<OpenLinkResponse>('/invitation/open-link', { url_token });
+            return {
+                success: true,
+                data: response.data
             };
         } catch (error) {
             return handleApiError(error);

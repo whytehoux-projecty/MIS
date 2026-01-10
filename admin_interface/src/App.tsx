@@ -64,9 +64,9 @@ const SystemSchedulePage = React.lazy(() =>
     default: m.default,
   }))
 );
-const WaitlistPage = React.lazy(() =>
-  import("./pages/waitlist/WaitlistPage").then((m) => ({
-    default: m.default,
+const InterestRequestsPage = React.lazy(() =>
+  import("./pages/interest/InterestRequestsPage").then((m) => ({
+    default: m.InterestRequestsPage,
   }))
 );
 
@@ -180,7 +180,8 @@ function App() {
               <Route path="/system-schedule" element={<SystemSchedulePage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/waitlist" element={<WaitlistPage />} />
+              <Route path="/interest" element={<InterestRequestsPage />} />
+              <Route path="/waitlist" element={<Navigate to="/interest" replace />} />
             </Route>
           </Route>
 

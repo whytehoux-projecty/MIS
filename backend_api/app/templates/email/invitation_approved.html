@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitation Approved - MIS Registration</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border: 3px solid #28282B;
+    }
+
+    .header {
+      background: #28282B;
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .credentials {
+      background: #f8f9fa;
+      border: 2px solid #28282B;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .code {
+      font-family: monospace;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: #28282B;
+    }
+
+    .pin {
+      font-family: monospace;
+      font-size: 20px;
+      color: #28282B;
+      margin-top: 10px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #28282B;
+      color: white;
+      padding: 15px 40px;
+      text-decoration: none;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>MIS REGISTRATION</h1>
+    </div>
+
+    <div class="content">
+      <h2>Howfa, {{applicant_alias}}!</h2>
+
+      <p>Congratulations! Your invitation has been approved. You can now start registration as a member.</p>
+
+      <p>Kindly follow the instructions below and use the provided details to complete your registration.</p>
+
+      <div class="warning">
+        <strong>⚠️ IMPORTANT TIME LIMITS:</strong>
+        <ul>
+          <li>This invitation is valid for <strong>24 hours</strong> from now.</li>
+          <li>Once you click the registration link, you have <strong>5 hours</strong> to complete the form.</li>
+          <li>The link can only be used once.</li>
+        </ul>
+      </div>
+
+      <div class="credentials">
+        <p style="margin: 0 0 10px 0; color: #666;">YOUR INVITATION CODE</p>
+        <div class="code">{{invitation_code}}</div>
+
+        <p style="margin: 20px 0 10px 0; color: #666;">YOUR VALIDATION PIN</p>
+        <div class="pin">{{validation_pin}}</div>
+      </div>
+
+      <p style="text-align: center;">
+        <a href="{{registration_url}}" class="btn">START REGISTRATION</a>
+      </p>
+
+      <p style="font-size: 12px; color: #666;">
+        If the button doesn't work, copy and paste this link in your browser:<br>
+        <code>{{registration_url}}</code>
+      </p>
+
+      <p>
+        <strong>Expires:</strong> {{expiry_date}}<br>
+        <strong>Timezone:</strong> {{timezone}}
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>This is an automated message from MIS. Do not reply to this email.</p>
+      <p>If you did not request this invitation, please ignore this email.</p>
+    </div>
+  </div>
+</body>
+
+</html>
