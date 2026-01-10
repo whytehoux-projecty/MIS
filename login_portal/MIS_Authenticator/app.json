@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "MIS Authenticator",
+    "slug": "mis-authenticator",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mis.authenticator",
+      "infoPlist": {
+        "NSCameraUsageDescription": "MIS Authenticator uses the camera to scan QR codes for secure authentication."
+      }
+    },
+    "android": {
+      "package": "com.mis.authenticator",
+      "permissions": [
+        "CAMERA",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow MIS Authenticator to access your camera for QR code scanning."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow MIS Authenticator to use Face ID for secure access."
+        }
+      ]
+    ],
+    "scheme": "mis-auth"
+  }
+}

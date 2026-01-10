@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any
 
 class QRGenerateRequest(BaseModel):
     service_id: int
@@ -13,6 +13,7 @@ class QRGenerateResponse(BaseModel):
 class QRScanRequest(BaseModel):
     qr_token: str
     user_auth_key: str
+    device_info: Optional[Dict[str, Any]] = None
 
 class QRScanResponse(BaseModel):
     success: bool

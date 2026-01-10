@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.auth import (
@@ -9,12 +9,14 @@ from app.schemas.auth import (
 from app.services import qr_service, pin_service, session_service
 from app.core.system_status import is_system_open, get_system_status
 from app.middleware.rate_limiter import qr_rate_limiter, login_rate_limiter
+from app.core.audit_logger import audit, AuditEventType, detect_suspicious_patterns
 
 router = APIRouter()
 
 @router.post("/qr/generate", response_model=QRGenerateResponse, dependencies=[Depends(qr_rate_limiter.check_rate_limit)])
 def generate_qr_code(
-    request: QRGenerateRequest,
+    payload: QRGenerateRequest,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -32,9 +34,18 @@ def generate_qr_code(
     
     try:
         qr_data = qr_service.generate_qr_session(
-            service_id=request.service_id,
-            service_api_key=request.service_api_key,
-            db=db
+            service_id=payload.service_id,
+            service_api_key=payload.service_api_key,
+            db=db,
+            client_ip=request.client.host
+        )
+        
+        audit.log(
+            AuditEventType.QR_GENERATED,
+            success=True,
+            service_id=payload.service_id,
+            ip_address=request.client.host,
+            details={"token": qr_data["token"]}
         )
         
         return QRGenerateResponse(
@@ -44,6 +55,13 @@ def generate_qr_code(
         )
         
     except ValueError as e:
+        audit.log(
+            AuditEventType.QR_GENERATED,
+            success=False,
+            service_id=payload.service_id,
+            ip_address=request.client.host,
+            details={"error": str(e)}
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
@@ -51,7 +69,8 @@ def generate_qr_code(
 
 @router.post("/qr/scan", response_model=QRScanResponse, dependencies=[Depends(qr_rate_limiter.check_rate_limit)])
 def scan_qr_code(
-    request: QRScanRequest,
+    payload: QRScanRequest,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -69,9 +88,21 @@ def scan_qr_code(
     
     try:
         result = qr_service.process_qr_scan(
-            qr_token=request.qr_token,
-            user_auth_key=request.user_auth_key,
-            db=db
+            qr_token=payload.qr_token,
+            user_auth_key=payload.user_auth_key,
+            db=db,
+            scanner_ip=request.client.host,
+            device_info=payload.device_info
+        )
+        
+        audit.log(
+            AuditEventType.QR_SCANNED,
+            success=True,
+            ip_address=request.client.host,
+            details={
+                "auth_key": payload.user_auth_key, 
+                "device_info": payload.device_info
+            }
         )
         
         return QRScanResponse(
@@ -81,6 +112,12 @@ def scan_qr_code(
         )
         
     except ValueError as e:
+        audit.log(
+            AuditEventType.QR_SCANNED,
+            success=False,
+            ip_address=request.client.host,
+            details={"error": str(e), "auth_key": payload.user_auth_key}
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -88,7 +125,8 @@ def scan_qr_code(
 
 @router.post("/pin/verify", response_model=PINVerifyResponse, dependencies=[Depends(login_rate_limiter.check_rate_limit)])
 def verify_pin(
-    request: PINVerifyRequest,
+    payload: PINVerifyRequest,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """
@@ -106,9 +144,19 @@ def verify_pin(
     
     try:
         result = pin_service.verify_pin_and_create_session(
-            qr_token=request.qr_token,
-            pin=request.pin,
-            db=db
+            qr_token=payload.qr_token,
+            pin=payload.pin,
+            db=db,
+            verifier_ip=request.client.host
+        )
+        
+        user_info = result.get("user_info", {})
+        audit.log(
+            AuditEventType.PIN_VERIFIED,
+            success=True,
+            ip_address=request.client.host,
+            user_id=user_info.get("user_id"),
+            details={"qr_token": payload.qr_token}
         )
         
         return PINVerifyResponse(
@@ -119,6 +167,16 @@ def verify_pin(
         )
         
     except ValueError as e:
+        audit.log(
+            AuditEventType.PIN_VERIFIED,
+            success=False,
+            ip_address=request.client.host,
+            details={"error": str(e), "qr_token": payload.qr_token}
+        )
+        
+        # GAP-M03: Check for suspicious patterns on failure
+        detect_suspicious_patterns(request.client.host, db)
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(e)
@@ -141,12 +199,17 @@ def validate_session(token: str, db: Session = Depends(get_db)):
         )
 
 @router.post("/logout")
-def logout(token: str, db: Session = Depends(get_db)):
+def logout(token: str, request: Request, db: Session = Depends(get_db)):
     """
     Logout user session
     """
     try:
         success = session_service.logout_session(token, db)
+        audit.log(
+             AuditEventType.LOGOUT,
+             success=True,
+             ip_address=request.client.host
+        )
         return {"success": success, "message": "Logged out successfully"}
     except ValueError as e:
         raise HTTPException(

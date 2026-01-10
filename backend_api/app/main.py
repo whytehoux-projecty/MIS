@@ -12,7 +12,7 @@ from app.database import engine, Base
 from app.core.system_status import get_system_status
 
 # Import all route modules
-from app.routes import registration, admin, auth, services, system, invitation, waitlist, upload
+from app.routes import registration, admin, auth, services, system, invitation, waitlist, upload, monitoring
 
 # Import all models to ensure they're registered with SQLAlchemy
 from app.models import waitlist as waitlist_model  # noqa: F401
@@ -101,6 +101,12 @@ app.include_router(
 )
 
 app.include_router(
+    monitoring.router,
+    prefix="/api/monitoring",
+    tags=["Monitoring"]
+)
+
+app.include_router(
     invitation.router,
     prefix="/api/invitation",
     tags=["Invitation"]
@@ -179,10 +185,13 @@ def seed_default_admin():
         db.close()
 
 
+from app.core.logging_config import setup_logging
+
 # Startup event - runs when server starts
 @app.on_event("startup")
 async def startup_event():
     """Initialize the application on startup"""
+    setup_logging()
     print("=" * 60)
     print(f"🚀 {settings.API_TITLE} v{settings.API_VERSION}")
     print("=" * 60)

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIS Login Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        chaco: {
+                            DEFAULT: '#1b1b1b',
+                            light: '#e6e6e6',
+                            mid: '#bdbdbd',
+                        },
+                    },
+                    fontFamily: {
+                        digital: ['"Digital Dream"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        @font-face {
+            font-family: "Digital Dream";
+            src: url("/digital-dream/DIGITALDREAM.ttf") format("truetype");
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        /* Define chaco colors as CSS custom properties */
+        :root {
+            --chaco: #1b1b1b;
+            --chaco-light: #e6e6e6;
+            --chaco-mid: #bdbdbd;
+        }
+
+        /* Custom utility classes for chaco colors */
+        .bg-chaco {
+            background-color: var(--chaco) !important;
+        }
+
+        .bg-chaco-light {
+            background-color: var(--chaco-light) !important;
+        }
+
+        .text-chaco {
+            color: var(--chaco) !important;
+        }
+
+        .text-chaco-light {
+            color: var(--chaco-light) !important;
+        }
+
+        .border-chaco {
+            border-color: var(--chaco) !important;
+        }
+
+        .border-chaco\/20 {
+            border-color: rgba(27, 27, 27, 0.2) !important;
+        }
+
+        .font-digital {
+            font-family: "Digital Dream", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-chaco-light text-chaco antialiased">
+    <app-root></app-root>
+</body>
+
+</html>

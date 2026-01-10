@@ -17,3 +17,4 @@ class ActiveUser(BaseModel):
     is_active = Column(Boolean, default=True)
     approved_at = Column(DateTime)
     last_login = Column(DateTime, nullable=True)
+    biometric_enabled = Column(Boolean, default=False, nullable=False)
